@@ -1,17 +1,18 @@
 //pines
 
-#define BUTTON_UP_PIN 4;
-#define BUTTON_DOWN_PIN 7;
-#define BUTTON__STOP_PIN 8;
-#define BUTTON_MODE 2;
+#define BUTTON_UP_PIN 4
+#define BUTTON_DOWN_PIN 7
+#define BUTTON_START_STOP_PIN 8
+#define BUTTON_MODE_PIN 2
 
 
 //Variables
 
 byte buttonUp;
 byte buttonDown;
-byte buttonOnOFF;
+byte buttonStartStop;
 byte buttonMode;
+unsigned long lastTimeReadButtons;
 int years;
 byte month;
 byte days;
@@ -23,7 +24,7 @@ byte minutes;
 byte seconds;
 unsigned long milliseconds;
 unsigned long currentTime;
-unsigned long lastTime;
+unsigned long lastTimeClock;
 unsigned long elapsedTime;
 
 const int INITIAL_YEARS = 2020;
@@ -34,6 +35,7 @@ const byte INITIAL_MINUTES = 0;
 const byte INITIAL_SECONDS = 0;
 const byte INITIAL_MILLISECONDS = 0;
 const byte INTERVAL_MILLISECONDS = 10;
+const byte INTERVAL_BUTTON_MILLISECONDS = 1000;
 
 
 //Métodos
@@ -53,6 +55,7 @@ void setup() {
 
 
 void loop() {
+  readTime();
   readSensors();
   calculate();
   draw();
@@ -61,28 +64,51 @@ void loop() {
 
 void readSensors() {
 
+  if (shouldBeReadButtons()) {
+    buttonUp = digitalRead(BUTTON_UP_PIN);
+    buttonDown = digitalRead(BUTTON_DOWN_PIN);
+    buttonStartStop = digitalRead(BUTTON_START_STOP_PIN);
+    buttonMode = digitalRead(BUTTON_MODE_PIN);
+    Serial.println("buttonUp " + String(buttonUp));
+    Serial.println("buttonDown " + String(buttonDown));
+    Serial.println("buttonStartStop " + String(buttonStartStop));
+    Serial.println("buttonMode " + String(buttonMode));
+    Serial.println("lastTimeReadButtons " + String(lastTimeReadButtons));
+    Serial.println("currentTime " + String(currentTime));
+    
+    lastTimeReadButtons = currentTime;
+  }
+
+}
+
+
+void readTime() {
+  currentTime = millis();
+  if (lastTimeClock > currentTime) {
+    lastTimeClock = currentTime;
+  }
+  if (lastTimeReadButtons > currentTime) {
+    lastTimeReadButtons = currentTime;
+  }
 }
 
 
 void calculate() {
-  currentTime = millis();
-
-  if (lastTime > currentTime) {
-    lastTime = currentTime;
-  }
-
-  elapsedTime = currentTime - lastTime;
+  elapsedTime = currentTime - lastTimeClock;
 
   if (shouldBeClockUpdated()) {
     calculateClockTime();
-    lastTime = currentTime;
+    lastTimeClock = currentTime;
   }
 
 }
 
+boolean shouldBeReadButtons() {
+  return currentTime >= lastTimeReadButtons + INTERVAL_BUTTON_MILLISECONDS;
+}
 
 boolean shouldBeClockUpdated() {
-  return currentTime >= lastTime + INTERVAL_MILLISECONDS;
+  return currentTime >= lastTimeClock + INTERVAL_MILLISECONDS;
 }
 
 
@@ -160,10 +186,10 @@ void drawClock() {
     millisecondsStr = String(milliseconds / 10);
   }
 
-  output = String(week[dayOfWeek - 1]) + "  " + String(monthOfYears[month - 1]) + "  " + daysStr + "/" + monthStr + "/" + yearsStr + "  " + hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
+  //output = String(week[dayOfWeek - 1]) + "  " + String(monthOfYears[month - 1]) + "  " + daysStr + "/" + monthStr + "/" + yearsStr + "  " + hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
   //output = hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
 
-  Serial.println(output);
+  //Serial.println(output);
 }
 
 
