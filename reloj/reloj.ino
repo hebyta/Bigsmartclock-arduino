@@ -1,14 +1,26 @@
+//pines
+
+#define BUTTON_UP_PIN 4;
+#define BUTTON_DOWN_PIN 7;
+#define BUTTON__STOP_PIN 8;
+#define BUTTON_MODE 2;
+
+
 //Variables
 
+byte buttonUp;
+byte buttonDown;
+byte buttonOnOFF;
+byte buttonMode;
+int years;
 byte month;
 byte days;
+char *week[7] = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
+byte daysOfMonths[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+char *monthOfYears[12] = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
 byte hours;
 byte minutes;
 byte seconds;
-int years;
-char *week[7] = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
-                byte daysOfMonths[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-char *monthOfYears[12] = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
 unsigned long milliseconds;
 unsigned long currentTime;
 unsigned long lastTime;
@@ -41,8 +53,13 @@ void setup() {
 
 
 void loop() {
+  readSensors();
   calculate();
   draw();
+
+}
+
+void readSensors() {
 
 }
 
@@ -143,7 +160,7 @@ void drawClock() {
     millisecondsStr = String(milliseconds / 10);
   }
 
-  output = String(week[dayOfWeek-1]) + "  " + String(monthOfYears[month-1]) + "  " + daysStr + "/" + monthStr + "/" + yearsStr + "  " + hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
+  output = String(week[dayOfWeek - 1]) + "  " + String(monthOfYears[month - 1]) + "  " + daysStr + "/" + monthStr + "/" + yearsStr + "  " + hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
   //output = hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
 
   Serial.println(output);
