@@ -34,8 +34,8 @@ const byte INITIAL_HOURS = 0;
 const byte INITIAL_MINUTES = 0;
 const byte INITIAL_SECONDS = 0;
 const byte INITIAL_MILLISECONDS = 0;
-const byte INTERVAL_MILLISECONDS = 10;
-const byte INTERVAL_BUTTON_MILLISECONDS = 1000;
+const int INTERVAL_MILLISECONDS = 10;
+const int INTERVAL_BUTTON_MILLISECONDS = 10;
 
 
 //Métodos
@@ -72,10 +72,7 @@ void readSensors() {
     Serial.println("buttonUp " + String(buttonUp));
     Serial.println("buttonDown " + String(buttonDown));
     Serial.println("buttonStartStop " + String(buttonStartStop));
-    Serial.println("buttonMode " + String(buttonMode));
-    Serial.println("lastTimeReadButtons " + String(lastTimeReadButtons));
-    Serial.println("currentTime " + String(currentTime));
-    
+    Serial.println("buttonMode " + String(buttonMode));    
     lastTimeReadButtons = currentTime;
   }
 
@@ -203,7 +200,7 @@ void calculateClockTime() {
   milliseconds += elapsedTime;
   if (milliseconds >= 1000) {
     seconds++;
-    milliseconds = 0;
+    milliseconds = milliseconds - 1000;
   }
   if (seconds >= 60) {
     minutes++;
@@ -217,12 +214,12 @@ void calculateClockTime() {
     days++;
     hours = 0;
   }
-  if (days >= daysMonths) {
+  if (days > daysMonths) {
     month++;
     days = 1;
 
   }
-  if (month >= 12) {
+  if (month > 12) {
     years++;
     month = 1;
   }
