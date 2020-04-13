@@ -8,6 +8,7 @@
 
 //Variables
 
+byte mode;
 byte buttonUp;
 byte buttonDown;
 byte buttonStartStop;
@@ -35,7 +36,10 @@ const byte INITIAL_MINUTES = 0;
 const byte INITIAL_SECONDS = 0;
 const byte INITIAL_MILLISECONDS = 0;
 const int INTERVAL_MILLISECONDS = 10;
-const int INTERVAL_BUTTON_MILLISECONDS = 10;
+const int INTERVAL_BUTTON_MILLISECONDS = 200;
+const byte CLOCK_MODE = 1;
+const byte CHRONOMETER_MODE = 2;
+const byte COUNTDOWN_MODE = 3;
 
 
 //Métodos
@@ -50,7 +54,11 @@ void setup() {
   minutes = INITIAL_MINUTES;
   seconds = INITIAL_SECONDS;
   milliseconds = INITIAL_MILLISECONDS;
-
+  mode = CLOCK_MODE;
+  pinMode(BUTTON_UP_PIN, INPUT);
+  pinMode(BUTTON_DOWN_PIN, INPUT);
+  pinMode(BUTTON_START_STOP_PIN, INPUT);
+  pinMode(BUTTON_MODE_PIN, INPUT);
 }
 
 
@@ -59,23 +67,23 @@ void loop() {
   readSensors();
   calculate();
   draw();
-
 }
 
-void readSensors() {
 
+void readSensors() {
+  readActuators();
+}
+
+
+void readActuators() {
   if (shouldBeReadButtons()) {
     buttonUp = digitalRead(BUTTON_UP_PIN);
     buttonDown = digitalRead(BUTTON_DOWN_PIN);
     buttonStartStop = digitalRead(BUTTON_START_STOP_PIN);
     buttonMode = digitalRead(BUTTON_MODE_PIN);
-    Serial.println("buttonUp " + String(buttonUp));
-    Serial.println("buttonDown " + String(buttonDown));
-    Serial.println("buttonStartStop " + String(buttonStartStop));
-    Serial.println("buttonMode " + String(buttonMode));    
     lastTimeReadButtons = currentTime;
-  }
 
+  }
 }
 
 
@@ -87,12 +95,12 @@ void readTime() {
   if (lastTimeReadButtons > currentTime) {
     lastTimeReadButtons = currentTime;
   }
+  elapsedTime = currentTime - lastTimeClock;
 }
 
 
 void calculate() {
-  elapsedTime = currentTime - lastTimeClock;
-
+  checkMode();
   if (shouldBeClockUpdated()) {
     calculateClockTime();
     lastTimeClock = currentTime;
@@ -111,7 +119,27 @@ boolean shouldBeClockUpdated() {
 
 
 void draw() {
-  drawClock();
+  if (mode == CLOCK_MODE) {
+    drawClock();
+  }
+}
+
+
+void checkMode() {
+  if (buttonMode == HIGH) {
+    if (mode == CLOCK_MODE) {
+      mode = CHRONOMETER_MODE;
+    }
+    else if (mode == CHRONOMETER_MODE) {
+      mode = COUNTDOWN_MODE;
+    }
+    else if (mode == COUNTDOWN_MODE) {
+      mode = CLOCK_MODE;
+    }
+    Serial.println(mode);
+    buttonMode = LOW;
+  }
+
 }
 
 
