@@ -8,6 +8,8 @@
 
 //Variables
 
+boolean isChronometerRunning = false;
+byte chronometer;
 byte mode;
 byte buttonUp;
 byte buttonDown;
@@ -24,9 +26,15 @@ byte hours;
 byte minutes;
 byte seconds;
 unsigned long milliseconds;
+unsigned int hoursChronometer;
+byte minutesChronometer;
+byte secondsChronometer;
+unsigned long millisecondsChronometer;
 unsigned long currentTime;
 unsigned long lastTimeClock;
-unsigned long elapsedTime;
+unsigned long elapsedTimeClock;
+unsigned long lastTimeChronometer;
+unsigned long elapsedTimeChronometer;
 
 const int INITIAL_YEARS = 2020;
 const byte INITIAL_MONTH = 1;
@@ -35,11 +43,14 @@ const byte INITIAL_HOURS = 0;
 const byte INITIAL_MINUTES = 0;
 const byte INITIAL_SECONDS = 0;
 const byte INITIAL_MILLISECONDS = 0;
-const int INTERVAL_MILLISECONDS = 10;
+const int INTERVAL_MILLISECONDS_CLOCK = 10;
 const int INTERVAL_BUTTON_MILLISECONDS = 200;
+const int INTERVAL_MILLISECONDS_CHRONOMETER = 10;
 const byte CLOCK_MODE = 1;
 const byte CHRONOMETER_MODE = 2;
 const byte COUNTDOWN_MODE = 3;
+const byte CHRONOMETER_START_MODE = 4;
+const byte CHRONOMETER_STOP_MODE = 5;
 
 
 //Métodos
@@ -47,6 +58,11 @@ const byte COUNTDOWN_MODE = 3;
 void setup() {
   Serial.begin(9600);
 
+  isChronometerRunning = false;
+  hoursChronometer = 0;
+  minutesChronometer = 0;
+  secondsChronometer = 0;
+  millisecondsChronometer = 0;
   years = INITIAL_YEARS;
   month = INITIAL_MONTH;
   days = INITIAL_DAYS;
@@ -55,10 +71,10 @@ void setup() {
   seconds = INITIAL_SECONDS;
   milliseconds = INITIAL_MILLISECONDS;
   mode = CLOCK_MODE;
-  pinMode(BUTTON_UP_PIN, INPUT);
-  pinMode(BUTTON_DOWN_PIN, INPUT);
-  pinMode(BUTTON_START_STOP_PIN, INPUT);
-  pinMode(BUTTON_MODE_PIN, INPUT);
+  pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_DOWN_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_START_STOP_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_MODE_PIN, INPUT_PULLUP);
 }
 
 
@@ -84,6 +100,7 @@ void readActuators() {
     lastTimeReadButtons = currentTime;
 
   }
+
 }
 
 
@@ -95,32 +112,51 @@ void readTime() {
   if (lastTimeReadButtons > currentTime) {
     lastTimeReadButtons = currentTime;
   }
-  elapsedTime = currentTime - lastTimeClock;
+  if (lastTimeChronometer > currentTime) {
+    lastTimeChronometer = currentTime;
+  }
+  elapsedTimeClock = currentTime - lastTimeClock;
+  elapsedTimeChronometer = currentTime - lastTimeChronometer;
 }
 
 
 void calculate() {
   checkMode();
+  checkStartStop();
   if (shouldBeClockUpdated()) {
     calculateClockTime();
     lastTimeClock = currentTime;
   }
-
+  if (shouldBeChronometerUpdated()) {
+    if (isChronometerRunning) {
+      calculateChronometer();
+    }
+    lastTimeChronometer = currentTime;
+  }
 }
+
+boolean shouldBeChronometerUpdated() {
+  return currentTime >= lastTimeChronometer + INTERVAL_MILLISECONDS_CHRONOMETER;
+}
+
 
 boolean shouldBeReadButtons() {
   return currentTime >= lastTimeReadButtons + INTERVAL_BUTTON_MILLISECONDS;
+
 }
+
 
 boolean shouldBeClockUpdated() {
-  return currentTime >= lastTimeClock + INTERVAL_MILLISECONDS;
+  return currentTime >= lastTimeClock + INTERVAL_MILLISECONDS_CLOCK;
 }
-
 
 
 void draw() {
   if (mode == CLOCK_MODE) {
     drawClock();
+  }
+  if (mode == CHRONOMETER_MODE) {
+    drawChronometer();
   }
 }
 
@@ -136,11 +172,89 @@ void checkMode() {
     else if (mode == COUNTDOWN_MODE) {
       mode = CLOCK_MODE;
     }
-    Serial.println(mode);
     buttonMode = LOW;
+    Serial.println(mode);
+
+
+
+  }
+}
+
+
+void checkStartStop() {
+  if (buttonStartStop == HIGH) {
+    if (mode == CHRONOMETER_MODE) {
+      if (isChronometerRunning) {
+        isChronometerRunning = false;
+      }
+      else {
+        isChronometerRunning = true;
+      }
+    }
+    buttonStartStop = LOW;
   }
 
 }
+
+
+void calculateChronometer() {
+  millisecondsChronometer += elapsedTimeChronometer;
+  if (millisecondsChronometer >= 1000) {
+    secondsChronometer++;
+    millisecondsChronometer = millisecondsChronometer - 1000;
+  }
+  if (secondsChronometer >= 60) {
+    minutesChronometer++;
+    secondsChronometer = 0;
+  }
+  if (minutesChronometer >= 60) {
+    hoursChronometer++;
+    minutesChronometer = 0;
+  }
+
+}
+
+
+void drawChronometer() {
+  String output = "";
+  String hoursStr;
+  String minutesStr;
+  String secondsStr;
+  String millisecondsStr;
+
+  if (hoursChronometer < 10) {
+    hoursStr = "0" + String(hoursChronometer);
+  }
+  else {
+    hoursStr = String(hoursChronometer);
+  }
+
+  if (minutesChronometer < 10) {
+    minutesStr = "0" + String(minutesChronometer);
+  }
+  else {
+    minutesStr = String(minutesChronometer);
+  }
+
+  if (secondsChronometer < 10) {
+    secondsStr = "0" + String(secondsChronometer);
+  }
+  else {
+    secondsStr = String(secondsChronometer);
+  }
+
+  if (millisecondsChronometer < 100) {
+    millisecondsStr = "0" + String(millisecondsChronometer / 10);
+  }
+  else {
+    millisecondsStr = String(millisecondsChronometer / 10);
+  }
+
+  output = hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
+
+  Serial.println(output);
+}
+
 
 
 void drawClock() {
@@ -225,7 +339,7 @@ void calculateClockTime() {
 
   }
 
-  milliseconds += elapsedTime;
+  milliseconds += elapsedTimeClock;
   if (milliseconds >= 1000) {
     seconds++;
     milliseconds = milliseconds - 1000;
@@ -245,7 +359,6 @@ void calculateClockTime() {
   if (days > daysMonths) {
     month++;
     days = 1;
-
   }
   if (month > 12) {
     years++;
