@@ -15,7 +15,6 @@ byte buttonUp;
 byte buttonDown;
 byte buttonStartStop;
 byte buttonMode;
-unsigned long lastTimeReadButtons;
 int years;
 byte month;
 byte days;
@@ -35,6 +34,8 @@ unsigned long lastTimeClock;
 unsigned long elapsedTimeClock;
 unsigned long lastTimeChronometer;
 unsigned long elapsedTimeChronometer;
+unsigned long lastTimeReadButtons;
+unsigned long lastTimeForResetChronometer;
 
 const int INITIAL_YEARS = 2020;
 const byte INITIAL_MONTH = 1;
@@ -46,6 +47,7 @@ const byte INITIAL_MILLISECONDS = 0;
 const int INTERVAL_MILLISECONDS_CLOCK = 10;
 const int INTERVAL_BUTTON_MILLISECONDS = 200;
 const int INTERVAL_MILLISECONDS_CHRONOMETER = 10;
+const int INTERVAL_RESET_CHRONOMETER = 3000;
 const byte CLOCK_MODE = 1;
 const byte CHRONOMETER_MODE = 2;
 const byte COUNTDOWN_MODE = 3;
@@ -97,10 +99,8 @@ void readActuators() {
     buttonDown = digitalRead(BUTTON_DOWN_PIN);
     buttonStartStop = digitalRead(BUTTON_START_STOP_PIN);
     buttonMode = digitalRead(BUTTON_MODE_PIN);
-    lastTimeReadButtons = currentTime;
-
+    lastTimeReadButtons = currentTime; // ultimo instante de lectura de los botones
   }
-
 }
 
 
@@ -134,6 +134,13 @@ void calculate() {
     lastTimeChronometer = currentTime;
   }
 }
+
+
+boolean shouldBeChronometerStop() {
+  return currentTime >= lastTimeForResetChronometer + INTERVAL_RESET_CHRONOMETER;
+
+}
+
 
 boolean shouldBeChronometerUpdated() {
   return currentTime >= lastTimeChronometer + INTERVAL_MILLISECONDS_CHRONOMETER;
@@ -184,16 +191,26 @@ void checkMode() {
 void checkStartStop() {
   if (buttonStartStop == HIGH) {
     if (mode == CHRONOMETER_MODE) {
-      if (isChronometerRunning) {
-        isChronometerRunning = false;
+      if (lastTimeForResetChronometer == 0) {
+        if (isChronometerRunning) {
+          isChronometerRunning = false;
+        }
+        else {
+          isChronometerRunning = true;
+        }
+        lastTimeForResetChronometer = currentTime;
       }
-      else {
-        isChronometerRunning = true;
+      if (shouldBeChronometerStop()) {
+        hoursChronometer = 0;
+        minutesChronometer = 0;
+        secondsChronometer = 0;
+        millisecondsChronometer = 0;
       }
     }
     buttonStartStop = LOW;
   }
-
+  else
+    lastTimeForResetChronometer = 0;
 }
 
 
