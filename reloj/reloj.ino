@@ -1,4 +1,24 @@
-//pines
+//Etiquetas
+
+#define INITIAL_YEARS 2020
+#define INITIAL_MONTH 4
+#define INITIAL_DAYS 27
+#define INITIAL_HOURS 3
+#define INITIAL_MINUTES 57
+#define INITIAL_SECONDS 0
+#define INITIAL_MILLISECONDS 0
+#define INTERVAL_MILLISECONDS_CLOCK 10
+#define INTERVAL_BUTTON_MILLISECONDS 200
+#define INTERVAL_MILLISECONDS_CHRONOMETER 10
+#define INTERVAL_RESET 2000
+#define INTERVAL_MILLISECONDS_COUNTDOWN 10
+#define CLOCK_MODE 1
+#define CHRONOMETER_MODE 2
+#define COUNTDOWN_MODE 3
+#define CHRONOMETER_START_MODE 4
+#define CHRONOMETER_STOP_MODE 5
+
+//Etiquetas pines
 
 #define BUTTON_UP_PIN 4
 #define BUTTON_DOWN_PIN 7
@@ -8,8 +28,8 @@
 
 //Variables
 
+boolean isCountDownRunning = false;
 boolean isChronometerRunning = false;
-byte chronometer;
 byte mode;
 byte buttonUp;
 byte buttonDown;
@@ -29,30 +49,23 @@ unsigned int hoursChronometer;
 byte minutesChronometer;
 byte secondsChronometer;
 unsigned long millisecondsChronometer;
+unsigned int initialHoursCountDown;
+byte initialMinutesCountDown;
+byte initialSecondsCountDown;
+unsigned int hoursCountDown;
+byte minutesCountDown;
+byte secondsCountDown;
+unsigned millisecondsCountDown;
 unsigned long currentTime;
 unsigned long lastTimeClock;
 unsigned long elapsedTimeClock;
 unsigned long lastTimeChronometer;
 unsigned long elapsedTimeChronometer;
-unsigned long lastTimeReadButtons;
 unsigned long lastTimeForResetChronometer;
-
-const int INITIAL_YEARS = 2020;
-const byte INITIAL_MONTH = 1;
-const byte INITIAL_DAYS = 1;
-const byte INITIAL_HOURS = 0;
-const byte INITIAL_MINUTES = 0;
-const byte INITIAL_SECONDS = 0;
-const byte INITIAL_MILLISECONDS = 0;
-const int INTERVAL_MILLISECONDS_CLOCK = 10;
-const int INTERVAL_BUTTON_MILLISECONDS = 200;
-const int INTERVAL_MILLISECONDS_CHRONOMETER = 10;
-const int INTERVAL_RESET_CHRONOMETER = 3000;
-const byte CLOCK_MODE = 1;
-const byte CHRONOMETER_MODE = 2;
-const byte COUNTDOWN_MODE = 3;
-const byte CHRONOMETER_START_MODE = 4;
-const byte CHRONOMETER_STOP_MODE = 5;
+unsigned long lastTimeReadButtons;
+unsigned long lastTimeCountDown;
+unsigned long lastTimeForResetCountDown;
+unsigned long elapsedTimeCountDown;
 
 
 //Métodos
@@ -60,6 +73,14 @@ const byte CHRONOMETER_STOP_MODE = 5;
 void setup() {
   Serial.begin(9600);
 
+  initialHoursCountDown = 0;
+  initialMinutesCountDown = 30;
+  initialSecondsCountDown = 0;
+  isCountDownRunning = false;
+  hoursCountDown = initialHoursCountDown;
+  minutesCountDown = initialMinutesCountDown;
+  secondsCountDown = initialSecondsCountDown;
+  millisecondsCountDown = 0;
   isChronometerRunning = false;
   hoursChronometer = 0;
   minutesChronometer = 0;
@@ -115,8 +136,12 @@ void readTime() {
   if (lastTimeChronometer > currentTime) {
     lastTimeChronometer = currentTime;
   }
+  if (lastTimeCountDown > currentTime) {
+    lastTimeCountDown = currentTime;
+  }
   elapsedTimeClock = currentTime - lastTimeClock;
   elapsedTimeChronometer = currentTime - lastTimeChronometer;
+  elapsedTimeCountDown = currentTime - lastTimeCountDown;
 }
 
 
@@ -133,12 +158,27 @@ void calculate() {
     }
     lastTimeChronometer = currentTime;
   }
+  if (shouldBeCountDownUpdated()) {
+    if (isCountDownRunning) {
+      calculateCountDown();
+    }
+    lastTimeCountDown = currentTime;
+  }
 }
 
 
-boolean shouldBeChronometerStop() {
-  return currentTime >= lastTimeForResetChronometer + INTERVAL_RESET_CHRONOMETER;
+boolean shouldBeCountDownReset() {
+  return currentTime >= lastTimeForResetCountDown + INTERVAL_RESET;
+}
 
+
+boolean shouldBeCountDownUpdated() {
+  return currentTime >= lastTimeCountDown + INTERVAL_MILLISECONDS_COUNTDOWN;
+}
+
+
+boolean shouldBeChronometerReset() {
+  return currentTime >= lastTimeForResetChronometer + INTERVAL_RESET;
 }
 
 
@@ -149,7 +189,6 @@ boolean shouldBeChronometerUpdated() {
 
 boolean shouldBeReadButtons() {
   return currentTime >= lastTimeReadButtons + INTERVAL_BUTTON_MILLISECONDS;
-
 }
 
 
@@ -164,6 +203,9 @@ void draw() {
   }
   if (mode == CHRONOMETER_MODE) {
     drawChronometer();
+  }
+  if (mode == COUNTDOWN_MODE) {
+    drawCountDown();
   }
 }
 
@@ -180,10 +222,6 @@ void checkMode() {
       mode = CLOCK_MODE;
     }
     buttonMode = LOW;
-    Serial.println(mode);
-
-
-
   }
 }
 
@@ -200,17 +238,93 @@ void checkStartStop() {
         }
         lastTimeForResetChronometer = currentTime;
       }
-      if (shouldBeChronometerStop()) {
+      if (shouldBeChronometerReset()) {
         hoursChronometer = 0;
         minutesChronometer = 0;
         secondsChronometer = 0;
         millisecondsChronometer = 0;
+        isChronometerRunning = false;
       }
     }
-    buttonStartStop = LOW;
+    if (mode == COUNTDOWN_MODE) {
+      if (lastTimeForResetCountDown == 0) {
+        if (isCountDownRunning) {
+          isCountDownRunning = false;
+        }
+        else {
+          isCountDownRunning = true;
+        }
+        lastTimeForResetCountDown = currentTime;
+      }
+      if (shouldBeCountDownReset()) {
+        hoursCountDown = initialHoursCountDown;
+        minutesCountDown = initialMinutesCountDown;
+        secondsCountDown = initialSecondsCountDown;
+        millisecondsCountDown = 0;
+        isCountDownRunning = false;
+      }
+    }
   }
-  else
+  else {
     lastTimeForResetChronometer = 0;
+    lastTimeForResetCountDown = 0;
+  }
+}
+
+
+void calculateCountDown() {
+  if (hoursCountDown == 0 && minutesCountDown == 0 && secondsCountDown == 0) {
+    isCountDownRunning = false;
+    return;
+  }
+  millisecondsCountDown += elapsedTimeCountDown;
+  if (millisecondsCountDown >= 1000) {
+    secondsCountDown--;
+    millisecondsCountDown = millisecondsCountDown - 1000;
+  }
+  if (secondsCountDown <= 0) {
+    minutesCountDown--;
+    secondsCountDown = 59;
+  }
+  if (minutesCountDown <= 0) {
+    hoursCountDown--;
+    minutesCountDown = 59;
+  }
+
+}
+
+
+void drawCountDown() {
+  String output = "";
+  String hoursStr;
+  String minutesStr;
+  String secondsStr;
+  String millisecondsStr;
+
+  if (hoursCountDown < 10) {
+    hoursStr = "0" + String(hoursCountDown);
+  }
+  else {
+    hoursStr = String(hoursCountDown);
+  }
+
+  if (minutesCountDown < 10) {
+    minutesStr = "0" + String(minutesCountDown);
+  }
+  else {
+    minutesStr = String(minutesCountDown);
+  }
+
+  if (secondsCountDown < 10) {
+    secondsStr = "0" + String(secondsCountDown);
+  }
+  else {
+    secondsStr = String(secondsCountDown);
+  }
+
+  output = hoursStr + ":" + minutesStr + ":" + secondsStr;
+
+  Serial.println(output);
 }
 
 
@@ -272,8 +386,6 @@ void drawChronometer() {
   Serial.println(output);
 }
 
-
-
 void drawClock() {
   String output = "";
   String yearsStr;
@@ -283,7 +395,7 @@ void drawClock() {
   String minutesStr;
   String secondsStr;
   String millisecondsStr;
-  int dayOfWeek = getDayOfWeek();
+  int dayOfWeek = getDayOfWeek(years, month, days);
 
   if (years < 10) {
     yearsStr = "000" + String(years);
@@ -342,16 +454,16 @@ void drawClock() {
     millisecondsStr = String(milliseconds / 10);
   }
 
-  //output = String(week[dayOfWeek - 1]) + "  " + String(monthOfYears[month - 1]) + "  " + daysStr + "/" + monthStr + "/" + yearsStr + "  " + hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
-  //output = hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
+  output = String(week[dayOfWeek - 1]) + "  " + String(monthOfYears[month - 1]) + "  " + daysStr + "/" + monthStr + "/" + yearsStr + "  " + hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
+  // output = hoursStr + ":" + minutesStr + ":" + secondsStr + "." + millisecondsStr;
 
-  //Serial.println(output);
+  Serial.println(output);
 }
 
 
 void calculateClockTime() {
   byte daysMonths = daysOfMonths[month - 1];
-  if (month == 2 && isLeapYears()) {
+  if (month == 2 && isLeapYears(years)) {
     daysMonths = 29;
 
   }
@@ -383,7 +495,12 @@ void calculateClockTime() {
   }
 }
 
-boolean isLeapYears() {
+/** documentacion metodo
+   calcula si el año es bisiesto
+    @param years año con el que calcularemos si es bisiesto
+    @return true si es bisiesto y false si no.
+*/
+boolean isLeapYears(int years) {
   if (years % 4 == 0) {
     if (years % 100 != 0) {
       return true;
@@ -395,7 +512,7 @@ boolean isLeapYears() {
   return false;
 }
 
-int getDayOfWeek() {
+int getDayOfWeek(int years, byte month, byte days) {
   int aux = (14 - month) / 12;
   int yearsAux = years - aux;
   int monthAux = month + 12 * aux - 2;
