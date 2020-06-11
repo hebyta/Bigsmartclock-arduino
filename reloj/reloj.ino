@@ -29,7 +29,8 @@ const byte INITIAL_CLOCK_SECONDS = 0;
 const byte INITIAL_CLOCK_MINUTES = 0;
 const byte INITIAL_CLOCK_HOURS = 12;
 const int SENDING_DATA_INTERVAL = 500;
-const byte TIME_OFFSET_MILLIS = 1;
+const byte TIME_OFFSET_MILLIS = 3;
+const byte TIME_OFFSET_MODULE = 3;
 
 // Constantes de modo
 const byte CLOCK_MODE = 0;
@@ -149,9 +150,9 @@ unsigned int sendingDataElapsedTime = 0;
 unsigned int receivedDataElapsedTime = 0;
 
 // Variables para los displays
-byte redColor = 100;
-byte greenColor = 100;
-byte blueColor = 100;
+byte redColor = 0;
+byte greenColor = 244;
+byte blueColor = 244;
 byte ledBrigthness = 20;
 int hoursSegmentSize = 6;
 int minutesSegmentSize = 6;
@@ -397,6 +398,7 @@ void readModeButton() {
           drawHours = true;
           selectedDisplay = SECONDS_DISPLAY;
         } else if (drawLoops) {
+           drawLoops = false;
           drawAll();
           selectedDisplay = HOURS_DISPLAY;
         }
@@ -749,7 +751,7 @@ void calculateTime() {
 void calculateClock() {
   if (clockMillis >= SECOND_ON_MILLIS) {
     drawSeconds = true;
-    if (clockSeconds == 0 || clockSeconds % 4 == 0)
+    if (clockSeconds == 0 || clockSeconds % TIME_OFFSET_MODULE == 0)
       clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 1;
     else
       clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
@@ -778,7 +780,7 @@ void calculateChrono() {
   if (isChronoRunning) {
     if (chronoMillis >= SECOND_ON_MILLIS) {
       drawSeconds = true;
-      if (chronoSeconds == 0 || chronoSeconds % 4 == 0)
+      if (chronoSeconds == 0 || chronoSeconds % TIME_OFFSET_MODULE == 0)
         chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 1;
       else
         chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
@@ -813,6 +815,7 @@ void initChrono() {
   chronoSeconds = 0;
   chronoMinutes = 0;
   chronoHours = 0;
+  drawAll();
 }
 
 /**
@@ -821,7 +824,7 @@ void initChrono() {
 void calculateCowntdown() {
   if (isCountDownRunning) {
     if (countDownMillis <= 0 && (countDownSeconds > 0 || countDownMinutes > 0 || countDownHours > 0)) {
-      if (countDownSeconds == 0 || countDownSeconds % 4 == 0)
+      if (countDownSeconds == 0 || countDownSeconds % TIME_OFFSET_MODULE == 0)
         countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 1;
       else
         countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS;
@@ -849,6 +852,7 @@ void calculateCowntdown() {
       countDownHours = 0;
       countDownMinutes = 0;
       countDownSeconds = 0;
+      tone(BUZZER_PIN, 300, 1000);
     }
   }
 }
@@ -861,6 +865,7 @@ void initCountDown() {
   countDownHours = countDownInitialHours;
   countDownMinutes = countDownInitialMinutes;
   countDownSeconds = countDownInitialSeconds;
+  drawAll();
 }
 
 
@@ -871,7 +876,7 @@ void calculateAutoChrono() {
   if (isAutoChronoRunning) {
     if (autoChronoMillis >= SECOND_ON_MILLIS) {
       drawSeconds = true;
-      if (autoChronoSeconds == 0 || autoChronoSeconds % 4 == 0)
+      if (autoChronoSeconds == 0 || autoChronoSeconds % TIME_OFFSET_MODULE == 0)
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 1;
       else
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
@@ -901,8 +906,10 @@ void calculateAutoChrono() {
         } else {
           initAutoChrono(false);
         }
+        tone(BUZZER_PIN, 300, 1000);
       } else {
         initAutoChrono(false);
+        tone(BUZZER_PIN, 500, 500);
       }
     }
   }
@@ -918,6 +925,7 @@ void initAutoChrono(boolean resetCounter) {
   autoChronoMillis = 0;
   if (resetCounter)
     autoChronoCurrentLoop = 1;
+  drawAll();
 }
 
 /**
@@ -926,7 +934,7 @@ void initAutoChrono(boolean resetCounter) {
 void calculateAutoCowntdown() {
   if (isAutoCountDownRunning) {
     if (autoCountDownMillis <= 0 && (autoCountDownSeconds > 0 || autoCountDownMinutes > 0 || autoCountDownHours > 0)) {
-      if (autoCountDownSeconds == 0 || autoCountDownSeconds % 4 == 0)
+      if (autoCountDownSeconds == 0 || autoCountDownSeconds % TIME_OFFSET_MODULE == 0)
         autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 1;
       else
         autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS;
@@ -957,8 +965,10 @@ void calculateAutoCowntdown() {
         autoCountDownMinutes = 0;
         autoCountDownHours = 0;
         isAutoCountDownRunning = false;
+        tone(BUZZER_PIN, 300, 1000);
       } else {
         initAutoCountDown(false);
+        tone(BUZZER_PIN, 500, 500);
       }
     }
   }
@@ -971,6 +981,7 @@ void initAutoCountDown(boolean restartCounter) {
   autoCountDownSeconds = autoCountDownInitialSeconds;
   if (restartCounter)
     autoCountDownCurrentLoop = 1;
+  drawAll();
 }
 
 /**
@@ -1334,101 +1345,6 @@ void drawPixels(int displayCode, char firstChar, char secondChar) {
     tenthsDisplay.show();
   }
 }
-
-/**
-   Método para dibujar los números en los displays
-*/
-/*void drawPixels(int displayCode, int value) {
-  byte firstDigitValueFormat[7];
-  byte secondDigitValueFormat[7];
-  int segmentSize = getSegmentSize(displayCode);
-  boolean simpleDisplay = isSimpleDisplay(displayCode);
-  int simpleDisplayTotalLeds = segmentSize * 7;
-  int firstDigit = 0;
-  int secondDigit = value;
-  if (value > 9) {
-    String valueStr = String(value);
-    firstDigit = String(valueStr[0]).toInt();
-    secondDigit = String(valueStr[1]).toInt();
-  }
-  getValueFormat(firstDigit, firstDigitValueFormat);
-  getValueFormat(secondDigit, secondDigitValueFormat);
-  int segment = 0;
-  for (int i = 0; i < simpleDisplayTotalLeds; i++) {
-    if (i % segmentSize == 0 && i != 0)
-      segment++;
-    byte firstDisplaySegmentState = firstDigitValueFormat[segment];
-    int rColor = redColor;
-    int gColor = greenColor;
-    int bColor = blueColor;
-    if (firstDisplaySegmentState  == 0) {
-      rColor = 0;
-      gColor = 0;
-      bColor = 0;
-    } else if (configMode && displayCode == selectedDisplay) {
-      if (rColor >= 127)
-        rColor = 0;
-      else
-        rColor = 255;
-      if (rColor == 0 && gColor == 0 && bColor == 0) {
-        rColor = 255;
-        gColor = 255;
-        bColor = 255;
-      }
-    }
-    if (displayCode == HOURS_DISPLAY)
-      hoursDisplay.setPixelColor(i, hoursDisplay.Color(rColor, gColor, bColor));
-    else if (displayCode == MINUTES_DISPLAY)
-      minutesDisplay.setPixelColor(i, minutesDisplay.Color(rColor, gColor, bColor));
-    else if (displayCode == SECONDS_DISPLAY)
-      secondsDisplay.setPixelColor(i, secondsDisplay.Color(rColor, gColor, bColor));
-    else if (displayCode == TENTHS_DISPLAY)
-      tenthsDisplay.setPixelColor(i, tenthsDisplay.Color(rColor, gColor, bColor));
-    if (!simpleDisplay) {
-      byte secondDisplaySegmentState = secondDigitValueFormat[segment];
-      rColor = redColor;
-      gColor = greenColor;
-      bColor = blueColor;
-      if (secondDisplaySegmentState  == 0) {
-        rColor = 0;
-        gColor = 0;
-        bColor = 0;
-      } else if (configMode && displayCode == selectedDisplay) {
-        if (rColor >= 127)
-          rColor = 0;
-        else
-          rColor = 255;
-        if (rColor == 0 && gColor == 0 && bColor == 0) {
-          rColor = 255;
-          gColor = 255;
-          bColor = 255;
-        }
-      }
-      if (displayCode == HOURS_DISPLAY)
-        hoursDisplay.setPixelColor(i + simpleDisplayTotalLeds, hoursDisplay.Color(rColor, gColor, bColor));
-      else if (displayCode == MINUTES_DISPLAY)
-        minutesDisplay.setPixelColor(i + simpleDisplayTotalLeds, minutesDisplay.Color(rColor, gColor, bColor));
-      else if (displayCode == SECONDS_DISPLAY)
-        secondsDisplay.setPixelColor(i + simpleDisplayTotalLeds, secondsDisplay.Color(rColor, gColor, bColor));
-      else if (displayCode == TENTHS_DISPLAY)
-        tenthsDisplay.setPixelColor(i + simpleDisplayTotalLeds, tenthsDisplay.Color(rColor, gColor, bColor));
-    }
-  }
-  int brigtness = ledBrigthness;
-  if (displayCode == HOURS_DISPLAY) {
-    hoursDisplay.setBrightness(brigtness);
-    hoursDisplay.show();
-  } else if (displayCode == MINUTES_DISPLAY) {
-    minutesDisplay.setBrightness(brigtness);
-    minutesDisplay.show();
-  } else if (displayCode == SECONDS_DISPLAY) {
-    secondsDisplay.setBrightness(brigtness);
-    secondsDisplay.show();
-  } else if (displayCode == TENTHS_DISPLAY) {
-    tenthsDisplay.setBrightness(brigtness);
-    tenthsDisplay.show();
-  }
-  }*/
 
 /**
    Método para encender y apagar el display de las horas
