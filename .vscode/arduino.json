@@ -1,0 +1,7 @@
+{
+    "port": "COM3",
+    "programmer": "AVR ISP",
+    "board": "arduino:avr:mega",
+    "configuration": "cpu=atmega2560",
+    "sketch": "reloj\\reloj.ino"
+}
