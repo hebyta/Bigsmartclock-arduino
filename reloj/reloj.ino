@@ -758,7 +758,7 @@ void calculateClock() {
       clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
     else
       clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
-    if (clockSeconds % (TIME_OFFSET_MODULE * 2) == 0)
+    if (clockSeconds % ((TIME_OFFSET_MODULE * 2) - 1) == 0)
       clockMillis += (TIME_OFFSET_MILLIS * 1.8);
     clockSeconds++;
   }
@@ -791,7 +791,7 @@ void calculateChrono() {
         chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
       else
         chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
-      if (chronoSeconds % (TIME_OFFSET_MODULE * 2) == 0)
+      if (chronoSeconds % ((TIME_OFFSET_MODULE * 2) - 1) == 0)
         chronoMillis += (TIME_OFFSET_MILLIS * 1.8);
       chronoSeconds++;
     }
@@ -839,7 +839,7 @@ void calculateCowntdown() {
         countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 2;
       else
         countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS;
-      if (countDownSeconds % (TIME_OFFSET_MODULE * 2) == 0)
+      if (countDownSeconds % ((TIME_OFFSET_MODULE * 2) - 1) == 0)
         countDownMillis -= (TIME_OFFSET_MILLIS * 1.8);
       countDownSeconds--;
       drawSeconds = true;
@@ -896,7 +896,7 @@ void calculateAutoChrono() {
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
       else
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
-      if (autoChronoSeconds % (TIME_OFFSET_MODULE * 2) == 0)
+      if (autoChronoSeconds % ((TIME_OFFSET_MODULE * 2) - 1) == 0)
         autoChronoMillis += (TIME_OFFSET_MILLIS * 1.8);
       autoChronoSeconds++;
     }
@@ -956,7 +956,7 @@ void calculateAutoCowntdown() {
         autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 2;
       else
         autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS;
-      if (autoCountDownSeconds % (TIME_OFFSET_MODULE * 2) == 0)
+      if (autoCountDownSeconds % ((TIME_OFFSET_MODULE * 2) - 1) == 0)
         autoCountDownMillis -= (TIME_OFFSET_MILLIS * 1.8);
       autoCountDownSeconds--;
       drawSeconds = true;
