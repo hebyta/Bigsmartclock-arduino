@@ -761,11 +761,13 @@ void calculateClock() {
     clockSeconds++;
   }
   if (clockSeconds >= 60) {
+    clockMillis += TIME_OFFSET_MODULE;
     drawMinutes = true;
     clockMinutes++;
     clockSeconds = 0;
   }
   if (clockMinutes >= 60) {
+    clockMillis += TIME_OFFSET_MODULE;
     drawHours = true;
     clockHours++;
     clockMinutes = 0;
@@ -790,11 +792,13 @@ void calculateChrono() {
       chronoSeconds++;
     }
     if (chronoSeconds >= 60) {
+      chronoMillis += TIME_OFFSET_MODULE;
       drawMinutes = true;
       chronoMinutes++;
       chronoSeconds = 0;
     }
     if (chronoMinutes >= 60) {
+      chronoMillis += TIME_OFFSET_MODULE;
       drawHours = true;
       chronoHours++;
       chronoMinutes = 0;
@@ -835,16 +839,19 @@ void calculateCowntdown() {
       drawSeconds = true;
     }
     if (countDownSeconds < 0 && (countDownMinutes > 0 || countDownHours > 0)) {
+      countDownMillis += TIME_OFFSET_MODULE;
       countDownSeconds = 59;
       countDownMinutes--;
       drawMinutes = true;
     }
     if (countDownMinutes < 0  && countDownHours > 0) {
+      countDownMillis += TIME_OFFSET_MODULE;
       drawHours = true;
       countDownHours--;
       countDownMinutes = 59;
     }
     if (countDownHours < 0) {
+      countDownMillis += TIME_OFFSET_MODULE;
       drawHours = true;
       countDownHours = 0;
     }
@@ -883,16 +890,16 @@ void calculateAutoChrono() {
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
       else
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
-      autoChronoSeconds++;
+      autoChronoSeconds += 2;
     }
     if (autoChronoSeconds >= 60) {
       drawMinutes = true;
-      autoChronoMinutes++;
+      autoChronoMinutes += TIME_OFFSET_MODULE;
       autoChronoSeconds = 0;
     }
     if (autoChronoMinutes >= 60) {
       drawHours = true;
-      autoChronoHours++;
+      autoChronoHours += TIME_OFFSET_MODULE;
       autoChronoMinutes = 0;
     }
     if ((autoChronoHours == 100) || (autoChronoSeconds >= autoChronoSecondsLimit && autoChronoMinutes >= autoChronoMinutesLimit && autoChronoHours >= autoChronoHoursLimit)) {
@@ -945,16 +952,19 @@ void calculateAutoCowntdown() {
       drawSeconds = true;
     }
     if (autoCountDownSeconds < 0 && (autoCountDownMinutes > 0 || autoCountDownHours > 0)) {
+      autoCountDownMillis += TIME_OFFSET_MODULE;
       autoCountDownSeconds = 59;
       autoCountDownMinutes--;
       drawMinutes = true;
     }
     if (autoCountDownMinutes < 0  && autoCountDownHours > 0) {
+      autoCountDownMillis += TIME_OFFSET_MODULE;
       drawHours = true;
       autoCountDownHours--;
       autoCountDownMinutes = 59;
     }
     if (autoCountDownHours < 0) {
+      autoCountDownMillis += TIME_OFFSET_MODULE;
       drawHours = true;
       autoCountDownHours = 0;
     }
