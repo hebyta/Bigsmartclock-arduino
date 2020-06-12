@@ -755,7 +755,7 @@ void calculateClock() {
   if (clockMillis >= SECOND_ON_MILLIS) {
     drawSeconds = true;
     if (clockSeconds == 0 || clockSeconds % TIME_OFFSET_MODULE == 0)
-      clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 1;
+      clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
     else
       clockMillis = clockMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
     clockSeconds++;
@@ -784,7 +784,7 @@ void calculateChrono() {
     if (chronoMillis >= SECOND_ON_MILLIS) {
       drawSeconds = true;
       if (chronoSeconds == 0 || chronoSeconds % TIME_OFFSET_MODULE == 0)
-        chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 1;
+        chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
       else
         chronoMillis = chronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
       chronoSeconds++;
@@ -828,7 +828,7 @@ void calculateCowntdown() {
   if (isCountDownRunning) {
     if (countDownMillis <= 0 && (countDownSeconds > 0 || countDownMinutes > 0 || countDownHours > 0)) {
       if (countDownSeconds == 0 || countDownSeconds % TIME_OFFSET_MODULE == 0)
-        countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 1;
+        countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 2;
       else
         countDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS;
       countDownSeconds--;
@@ -880,7 +880,7 @@ void calculateAutoChrono() {
     if (autoChronoMillis >= SECOND_ON_MILLIS) {
       drawSeconds = true;
       if (autoChronoSeconds == 0 || autoChronoSeconds % TIME_OFFSET_MODULE == 0)
-        autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 1;
+        autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS + 2;
       else
         autoChronoMillis = autoChronoMillis - SECOND_ON_MILLIS + TIME_OFFSET_MILLIS;
       autoChronoSeconds++;
@@ -938,7 +938,7 @@ void calculateAutoCowntdown() {
   if (isAutoCountDownRunning) {
     if (autoCountDownMillis <= 0 && (autoCountDownSeconds > 0 || autoCountDownMinutes > 0 || autoCountDownHours > 0)) {
       if (autoCountDownSeconds == 0 || autoCountDownSeconds % TIME_OFFSET_MODULE == 0)
-        autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 1;
+        autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS - 2;
       else
         autoCountDownMillis = SECOND_ON_MILLIS - TIME_OFFSET_MILLIS;
       autoCountDownSeconds--;
