@@ -30,7 +30,7 @@ const byte INITIAL_CLOCK_MINUTES = 0;
 const byte INITIAL_CLOCK_HOURS = 12;
 const int SENDING_DATA_INTERVAL = 500;
 const byte TIME_OFFSET_MILLIS = 2;
-const byte TIME_OFFSET_MODULE = 4;
+const byte TIME_OFFSET_MODULE = 2;
 
 // Constantes de modo
 const byte CLOCK_MODE = 0;
@@ -175,7 +175,7 @@ Adafruit_NeoPixel modeDisplay(5, MODE_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 */
 void setup() {
   Serial1.begin(9600);
-  Serial.begin(57600);
+  //Serial.begin(57600);
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
   clock_prescale_set(clock_div_1);
 #endif
@@ -1545,7 +1545,7 @@ void copyArray(byte source[], byte target[], int len) {
 }
 
 void sendBluetoothData() {
-  if (sendData) {
+  if (sendData && sendingDataElapsedTime >= SENDING_DATA_INTERVAL) {
     sendingDataElapsedTime = 0;
     String data = "&M=" + String(selectedMode) + ";T=" + getClockData() + ";C=" + getChronoData() + ";CD=" + getCountDownData() + ";AC=" + getAutoChronoData() + ";ACD=" + getAutoCountDownData() + ";" + getColorsData() + "|\n";
     char bData[data.length()];
