@@ -398,7 +398,7 @@ void readModeButton() {
           drawHours = true;
           selectedDisplay = SECONDS_DISPLAY;
         } else if (drawLoops) {
-           drawLoops = false;
+          drawLoops = false;
           drawAll();
           selectedDisplay = HOURS_DISPLAY;
         }
@@ -1008,7 +1008,7 @@ void checkButtonsPressed() {
 */
 void checkOnConfigModeTime() {
   if (configMode && elapsedTimeOnConfigMode >= MAX_TIME_ON_CONFIG) {
-    configMode =  false;
+    saveConfig();
     drawAll();
     elapsedTimeOnConfigMode = 0;
   }
@@ -1018,6 +1018,9 @@ void checkOnConfigModeTime() {
    Método para dibujar cada estado del reloj cuando sea pertinente
 */
 void draw() {
+  if(!drawLoops){
+    drawAll();
+  }
   drawClock();
   drawChrono();
   drawCountDown();
