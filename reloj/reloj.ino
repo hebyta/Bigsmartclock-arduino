@@ -29,8 +29,8 @@ const byte INITIAL_CLOCK_SECONDS = 0;
 const byte INITIAL_CLOCK_MINUTES = 0;
 const byte INITIAL_CLOCK_HOURS = 12;
 const int SENDING_DATA_INTERVAL = 500;
-const byte TIME_OFFSET_MILLIS = 3;
-const byte TIME_OFFSET_MODULE = 3;
+const byte TIME_OFFSET_MILLIS = 2;
+const byte TIME_OFFSET_MODULE = 2;
 
 // Constantes de modo
 const byte CLOCK_MODE = 0;
@@ -146,6 +146,7 @@ boolean isAutoCountDownRunning;
 boolean sendData = true;
 boolean drawLoops = false;
 boolean is24HoursClock = true;
+boolean configSaved = false;
 unsigned int sendingDataElapsedTime = 0;
 unsigned int receivedDataElapsedTime = 0;
 
@@ -398,8 +399,9 @@ void readModeButton() {
           drawHours = true;
           selectedDisplay = SECONDS_DISPLAY;
         } else if (drawLoops) {
-          drawLoops = false;
+          turnOnOff(MINUTES_DISPLAY, true);
           drawAll();
+          drawLoops = false;
           selectedDisplay = HOURS_DISPLAY;
         }
       } else if (selectedDisplay == TENTHS_DISPLAY) {
@@ -424,6 +426,7 @@ void readStartStopButton() {
   byte state = digitalRead(START_STOP_BUTTON_PIN);
   if (state != startStopButtonState && state == HIGH) {
     drawAll();
+    drawLoops = false;
     elapsedTimeOnConfigMode = 0;
     if (configMode) {
       saveConfig();
@@ -1010,6 +1013,7 @@ void checkOnConfigModeTime() {
   if (configMode && elapsedTimeOnConfigMode >= MAX_TIME_ON_CONFIG) {
     saveConfig();
     drawAll();
+    drawLoops = false;
     elapsedTimeOnConfigMode = 0;
   }
 }
@@ -1018,8 +1022,10 @@ void checkOnConfigModeTime() {
    Método para dibujar cada estado del reloj cuando sea pertinente
 */
 void draw() {
-  if(!drawLoops){
+  if(configSaved && !drawMinutes){
     drawAll();
+    drawLoops = false;
+    configSaved = false;  
   }
   drawClock();
   drawChrono();
@@ -1075,7 +1081,6 @@ void drawClock() {
       }
       if (drawMinutes) {
         String minutesStr = getTwoCharFormat(clockMinutes);
-        Serial.println("DrawMinutes => " + minutesStr);
         drawPixels(MINUTES_DISPLAY, minutesStr[0], minutesStr[1]);
         drawMinutes = false;
       }
@@ -1809,6 +1814,7 @@ byte negativizeColor(byte color) {
 }
 
 void saveConfig() {
+  configSaved = true;
   configMode = false;
   switch (selectedMode) {
     case COUNTDOWN_MODE:
