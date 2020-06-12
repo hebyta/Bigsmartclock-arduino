@@ -29,8 +29,8 @@ const byte INITIAL_CLOCK_SECONDS = 0;
 const byte INITIAL_CLOCK_MINUTES = 0;
 const byte INITIAL_CLOCK_HOURS = 12;
 const int SENDING_DATA_INTERVAL = 500;
-const byte TIME_OFFSET_MILLIS = 1;
-const byte TIME_OFFSET_MODULE = 2;
+const byte TIME_OFFSET_MILLIS = 2;
+const byte TIME_OFFSET_MODULE = 5;
 
 // Constantes de modo
 const byte CLOCK_MODE = 0;
