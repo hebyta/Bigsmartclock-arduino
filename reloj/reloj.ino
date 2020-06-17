@@ -174,7 +174,7 @@ Adafruit_NeoPixel modeDisplay(5, MODE_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
    Método que se ejecuta al iniciar el dispositivo y se utiliza para establecer la configuración inicial.
 */
 void setup() {
-  Serial1.begin(9600);
+  Serial2.begin(9600);
   //Serial.begin(57600);
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
   clock_prescale_set(clock_div_1);
@@ -1551,7 +1551,7 @@ void sendBluetoothData() {
     char bData[data.length()];
     data.toCharArray(bData, data.length());
     //Serial.println("Sending data: " + data);
-    Serial1.write(bData);
+    Serial2.write(bData);
   }
 }
 
@@ -1580,8 +1580,8 @@ String getColorsData() {
 }
 
 void readBluetoothData() {
-  while (Serial1.available()) {
-    char readed = Serial1.read();
+  while (Serial2.available()) {
+    char readed = Serial2.read();
     bufferData += readed;
     receivedDataElapsedTime = 0;
   }
@@ -1651,6 +1651,7 @@ void processKeyValuePair(String key, String value) {
     changeMode(value.toInt(), false);
   } else if (key == "format") {
     is24HoursClock = value == "1";
+    drawAll();
   }
 }
 
